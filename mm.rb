@@ -12,25 +12,27 @@
 #manages overall game flow
 #checks for win
 class MasterMind
-   def initialize()
+   def initialize
       @color_options=['red','blue','green','yellow','orange','white','pink','violet']
       @max_turns=12
-      @secret_code=@color_options.sample(4)
+      @secret_length=4
+      @secret_code=@color_options.sample(@secret_length)
 
       puts "Play Mastermind!\n\n"
       @game_board=GameBoard.new
       @player=Player.new
 
-      play_game
+      play_game(@max_turns,@secret_length)
    end
 
-   def play_game
+   def play_game(max_turns,secret_length)
       turn=0
       win=nil
-      while turn<12 and win==nil
-         puts "\nPlease choose 4 from #{@color_options.join(", ")}.\n\n"
-         guess= @player.make_guess(@color_options)
+      while turn<max_turns and win==nil
+         puts "\nPlease choose #{secret_length} from #{@color_options.join(", ")}.\n\n"
+         guess= @player.make_guess(@color_options,secret_length)
          @game_board.add_guess(guess)
+         #check guess and provide hint
          @game_board.show_curr_state
 
          turn+=1
@@ -73,8 +75,8 @@ end
 
 #makes a guess
 class Player
-   def make_guess(options)
-      Array.new(4) { check_validity(options) }
+   def make_guess(options,secret_length)
+      Array.new(secret_length) { check_validity(options) }
    end
 
    def check_validity(options)
