@@ -13,9 +13,10 @@
 class MasterMind
   def initialize
     @color_options = ['red', 'blue', 'green', 'yellow', 'orange', 'white', 'pink', 'violet']
-    @max_turns = 3
+    @max_turns = 12
     @secret_length = 4
     @secret_code = @color_options.sample(@secret_length)
+    
 
     puts "Play Mastermind!\n\n"
     @game_board = GameBoard.new
@@ -27,14 +28,14 @@ class MasterMind
   def play_game(max_turns, secret_length)
     turn = 0
     win = nil
-
+    hints=[]
     while turn < max_turns and win == nil
-      puts "\nYou have #{max_turns} turns to guess the secret code.\n"
+      puts "\nYou have #{max_turns-turn} turns to guess the secret code.\n"
       puts "\nPlease choose #{secret_length} from #{@color_options.join(", ")}.\n\n"
       guess = @player.make_guess(@color_options, secret_length)
       @game_board.add_guess(guess)
-      # check guess and provide hint
-      @game_board.show_curr_state
+      hints << get_hint(guess)
+      @game_board.show_curr_state(hints)
 
       turn += 1
     end
@@ -46,6 +47,10 @@ class MasterMind
     end
 
     play_again(max_turns, secret_length)
+  end
+
+  def get_hint(guess)
+    return [3,1]
   end
 
   def play_again(max_turns, secret_length)
@@ -82,9 +87,9 @@ class GameBoard
     @game_board = Array.new
   end
 
-  def show_curr_state
+  def show_curr_state(hints)
     @game_board.each_with_index do |guess, index|
-      puts "\nGuess ##{index + 1}: #{guess.join(' ')}"
+      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " +"|| "+ "Hits: #{ hints[index][0]} Balls: #{hints[index][1]} "
     end
   end
 
@@ -93,21 +98,13 @@ class GameBoard
   end
 end
 
-# checks for input and returns hint
-class Analyzer
-  def initialize(secret, guess)
-    @secret = secret
-    @guess = guess
-  end
-end
-
 # makes a guess
 class Player
   def make_guess(options, secret_length)
-    Array.new(secret_length) { check_validity(options) }
+    Array.new(secret_length) { check_option_validity(options) }
   end
 
-  def check_validity(options)
+  def check_option_validity(options)
     input = ''
     # accept any substring of options
     loop do
