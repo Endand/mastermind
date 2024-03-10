@@ -28,7 +28,7 @@ class MasterMind
       turn=0
       win=nil
       while turn<12 and win==nil
-         guess= @player.make_guess
+         guess= @player.make_guess(@color_options)
          @game_board.add_guess(guess)
          @game_board.show_curr_state
 
@@ -72,15 +72,27 @@ end
 
 #makes a guess
 class Player
-   def make_guess()
-      first_guess= gets.chomp
-      second_guess= gets.chomp
-      third_guess= gets.chomp
-      fourth_guess= gets.chomp
+   def make_guess(options)
+    first_guess = check_validity(options)
+    second_guess = check_validity(options)
+    third_guess = check_validity(options)
+    fourth_guess = check_validity(options)
       guess=[first_guess,second_guess,third_guess,fourth_guess]
       puts
       return guess
    end
+
+   def check_validity(options)
+      loop do
+         input=gets.chomp.downcase
+         if options.include?(input)
+            return input
+         else 
+            puts "\nInvalid input. Please choose from #{options.join(", ")}.\n\n"
+         end
+      end
+   end
+
 end
 
 game=MasterMind.new
