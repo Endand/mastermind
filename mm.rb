@@ -15,9 +15,9 @@ class MasterMind
    def initialize()
       @color_options=['red','blue','green','yellow','orange','white','pink','violet']
       @max_turns=12
+      @secret_code=@color_options.sample(4)
 
       puts "Play Mastermind!\n\n"
-
       @game_board=GameBoard.new
       @player=Player.new
 
@@ -28,6 +28,7 @@ class MasterMind
       turn=0
       win=nil
       while turn<12 and win==nil
+         puts "\nPlease choose 4 from #{@color_options.join(", ")}.\n\n"
          guess= @player.make_guess(@color_options)
          @game_board.add_guess(guess)
          @game_board.show_curr_state
@@ -52,7 +53,7 @@ class GameBoard
 
    def show_curr_state
       @game_board.each_with_index do |guess,index|
-         puts "Guess ##{index+1}: #{guess.join(' ')}"
+         puts "\nGuess ##{index+1}: #{guess.join(' ')}"
       end
    end
 
@@ -73,13 +74,7 @@ end
 #makes a guess
 class Player
    def make_guess(options)
-    first_guess = check_validity(options)
-    second_guess = check_validity(options)
-    third_guess = check_validity(options)
-    fourth_guess = check_validity(options)
-      guess=[first_guess,second_guess,third_guess,fourth_guess]
-      puts
-      return guess
+      Array.new(4) { check_validity(options) }
    end
 
    def check_validity(options)
