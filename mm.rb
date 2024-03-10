@@ -83,14 +83,22 @@ class Player
    end
 
    def check_validity(options)
+      input=''
+      #accept any substring of options
       loop do
          input=gets.chomp.downcase
-         if options.include?(input)
+         if options.include?(input) ||
+            options.any? {|color| color.downcase.start_with?(input)}
+
+            #return the original option
+            input= options.select {|color| color.start_with?(input)}
             return input
          else 
             puts "\nInvalid input. Please choose from #{options.join(", ")}.\n\n"
          end
       end
+      
+      
    end
 
 end
