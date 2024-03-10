@@ -10,7 +10,7 @@
 
 #starts the game
 #manages overall game flow
-#check for win
+#checks for win
 class MasterMind
    def initialize()
       @color_options=['red','blue','green','yellow','orange','white','pink','violet']
@@ -25,7 +25,21 @@ class MasterMind
    end
 
    def play_game
-      @player.make_guess
+      turn=0
+      win=nil
+      while turn<12 and win==nil
+         guess= @player.make_guess
+         @game_board.add_guess(guess)
+         @game_board.show_curr_state
+
+         turn+=1
+      end
+      puts
+      if win==true
+         puts "Congratulations, you got it!"
+      else
+         puts "Sorry, you ran out of guesses"
+      end
    end
 
 end
@@ -35,6 +49,17 @@ class GameBoard
    def initialize()
       @game_board=Array.new
    end
+
+   def show_curr_state
+      @game_board.each_with_index do |guess,index|
+         puts "Guess ##{index+1}: #{guess.join(' ')}"
+      end
+   end
+
+   def add_guess(guess)
+      @game_board << guess
+   end
+
 end
 
 #checks for input and returns hint
@@ -48,7 +73,13 @@ end
 #makes a guess
 class Player
    def make_guess()
-      puts 'guess'
+      first_guess= gets.chomp
+      second_guess= gets.chomp
+      third_guess= gets.chomp
+      fourth_guess= gets.chomp
+      guess=[first_guess,second_guess,third_guess,fourth_guess]
+      puts
+      return guess
    end
 end
 
