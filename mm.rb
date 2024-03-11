@@ -20,7 +20,7 @@ class MasterMind
     @game_board = GameBoard.new
     @player = Player.new
 
-    @mode = binary_response('create','guess')
+    @mode = binary_response('create', 'guess')
     if @mode == 'guess'
       play_game(@max_turns, @secret_length)
     elsif @mode == 'create'
@@ -29,7 +29,7 @@ class MasterMind
   end
 
   def play_game(max_turns, secret_length)
-   p @secret_code
+    p @secret_code
     turn = 0
     win = nil
     hints = []
@@ -57,7 +57,43 @@ class MasterMind
   end
 
   def computer_plays(max_turns, secret_length)
-    p 'cpu playing'
+    @secret_code = choose_secret_code(secret_length)
+    p @secret_code
+  end
+
+  def choose_secret_code(secret_length)
+    valid_inputs = nil
+    inputs = nil
+
+    until valid_inputs && valid_inputs.length == secret_length &&
+          valid_inputs.uniq.length == valid_inputs.length &&
+          valid_inputs.all? { |input| @color_options.any? (input) }
+
+      print "\nEnter your secret code that is #{secret_length} different colors. (Separated by space): "
+      inputs = gets.chomp.downcase.split
+
+      # need to check for if there are secret_length inputs
+      if inputs.length != secret_length
+        puts "\nInvalid input. Please ensure you input exactly #{secret_length} colors.\n"
+      # checks if all inputs are unique
+      elsif inputs.map { |input| input[0] }.uniq.length != inputs.length
+        puts "\nInvalid input. Please ensure all colors are unique.\n"
+      # checks if all inputs are valid color
+      elsif !inputs.all? { |input| @color_options.any? { |option| option.start_with?(input) } }
+        puts "\nInvalid input. Please ensure all colors are part of #{@color_options}.\n"
+      end
+
+      # if input is a valid substring
+      if inputs.all? { |input| @color_options.any? { |option| option.start_with?(input) } }
+        # turn substring into full color
+        valid_inputs = inputs.map do |input|
+          @color_options.find { |color| color.start_with?(input) }
+        end
+      end
+
+    end
+
+    valid_inputs
   end
 
   # evaluates guess and returns hint
@@ -81,9 +117,9 @@ class MasterMind
     mt = max_turns
     sl = secret_length
     puts "\nPlay Again?\n\n"
-    if binary_response('yes','no') == "yes"
+    if binary_response('yes', 'no') == "yes"
       puts "\nPlay with same settings?\n"
-      if binary_response('yes','no') == 'no'
+      if binary_response('yes', 'no') == 'no'
         puts "\nChoose Max Turns (Max 20): "
         mt = gets.to_i
         puts "\nChoose Secret Length (Max 8): "
@@ -102,18 +138,17 @@ class MasterMind
     @game_board = GameBoard.new
   end
 
-#takes two strings and asks until a substring of either one is inputted
-  def binary_response(op1,op2)
-   response = nil
-   options=[op1, op2]
-   puts "Do you want to #{op1} or #{op2} the secret code?\n"
-   until response && options.any? { |opt| opt.start_with?(response) }
-     print "\nPlease enter '#{op1.capitalize}' or '#{op2.capitalize}': \n"
-     response = gets.chomp.downcase
-   end
-   return options.find {|opt| opt.start_with?(response)}
+  # takes two strings and asks until a substring of either one is inputted
+  def binary_response(op1, op2)
+    response = nil
+    options = [op1, op2]
+    puts "Do you want to #{op1} or #{op2} the secret code?\n"
+    until response && options.any? { |opt| opt.start_with?(response) }
+      print "\nPlease enter '#{op1.capitalize}' or '#{op2.capitalize}': \n"
+      response = gets.chomp.downcase
+    end
+    return options.find { |opt| opt.start_with?(response) }
   end
-
 end
 
 # displays board up to current state
