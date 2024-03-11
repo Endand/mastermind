@@ -13,7 +13,7 @@
 class MasterMind
   def initialize
     @color_options = ['red', 'blue', 'green', 'yellow', 'orange', 'white', 'pink', 'violet']
-    @max_turns = 2
+    @max_turns = 12
     @secret_length = 4
     @secret_code = @color_options.sample(@secret_length)
     puts "Play Mastermind!\n\n"
@@ -24,6 +24,7 @@ class MasterMind
   end
 
   def play_game(max_turns, secret_length)
+    p @secret_code
     turn = 0
     win = nil
     hints=[]
@@ -33,13 +34,16 @@ class MasterMind
       guess = @player.make_guess(@color_options, secret_length)
       @game_board.add_guess(guess)
       hints << get_hint(guess)
+      if hints[-1][0]==4
+         win=true
+      end
       @game_board.show_curr_state(hints)
 
       turn += 1
     end
     puts
     if win == true
-      puts "Congratulations, you got it!"
+      puts "Congratulations, you got it!\n"
     else
       puts "Sorry, you ran out of guesses\n\n"
     end
@@ -48,14 +52,27 @@ class MasterMind
   end
 
   #evaluates guess and returns hint
-  def get_hint(guess)
-    return [3,1]
+  def get_hint(guesses)
+   hit=0
+   ball=0
+
+   guesses.each_with_index do |guess, index|
+      if guess==@secret_code[index]
+         hit+=1
+      else
+         if @secret_code.include?(guess)
+            ball+=1
+         end
+      end
+
+   end
+   return [hit,ball]
   end
 
   def play_again(max_turns, secret_length)
     mt = max_turns
     sl = secret_length
-    puts "Play Again?   \n\n"
+    puts "\nPlay Again?   \n\n"
     if yes_no == "y"
       puts "\nPlay with same settings?\n"
       if yes_no == 'n'
@@ -93,6 +110,7 @@ class GameBoard
   end
 
   def show_curr_state(hints)
+   
     @game_board.each_with_index do |guess, index|
       puts "\nGuess ##{index + 1}: #{guess.join(' ')} " +"|| "+ "Hits: #{ hints[index][0]} Balls: #{hints[index][1]} "
     end
@@ -116,9 +134,8 @@ class Player
       input = gets.chomp.downcase
       if options.include?(input) ||
          options.any? { |color| color.downcase.start_with?(input) }
-
         # return the original option
-        input = options.select { |color| color.start_with?(input) }
+        input = options.find { |color| color.start_with?(input) }
         return input
       else
         puts "\nInvalid input. Please choose from #{options.join(", ")}.\n\n"
