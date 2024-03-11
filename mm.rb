@@ -20,11 +20,12 @@ class MasterMind
     @game_board = GameBoard.new
     @player = Player.new
 
+    
+
     play_game(@max_turns, @secret_length)
   end
 
   def play_game(max_turns, secret_length)
-    p @secret_code
     turn = 0
     win = nil
     hints=[]
@@ -34,7 +35,7 @@ class MasterMind
       guess = @player.make_guess(@color_options, secret_length)
       @game_board.add_guess(guess)
       hints << get_hint(guess)
-      if hints[-1][0]==4
+      if hints[-1][0]==secret_length
          win=true
       end
       @game_board.show_curr_state(hints)
