@@ -13,11 +13,9 @@
 class MasterMind
   def initialize
     @color_options = ['red', 'blue', 'green', 'yellow', 'orange', 'white', 'pink', 'violet']
-    @max_turns = 12
+    @max_turns = 2
     @secret_length = 4
     @secret_code = @color_options.sample(@secret_length)
-    
-
     puts "Play Mastermind!\n\n"
     @game_board = GameBoard.new
     @player = Player.new
@@ -45,10 +43,11 @@ class MasterMind
     else
       puts "Sorry, you ran out of guesses\n\n"
     end
-
+    
     play_again(max_turns, secret_length)
   end
 
+  #evaluates guess and returns hint
   def get_hint(guess)
     return [3,1]
   end
@@ -65,12 +64,18 @@ class MasterMind
         puts "\nChoose Secret Length (Max 8): "
         sl = gets.to_i
       end
+      reset
+      puts "\nNew Game!\n"
       play_game(mt, sl)
     else
       puts "\nThank you for playing. Have a good day!"
     end
   end
 
+  def reset
+   @secret_code = @color_options.sample(@secret_length)
+   @game_board = GameBoard.new
+  end
   def yes_no
     response = nil
     until ['y', 'n'].include?(response)
