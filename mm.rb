@@ -20,23 +20,27 @@ class MasterMind
     @game_board = GameBoard.new
     @player = Player.new
 
-    
-
-    play_game(@max_turns, @secret_length)
+    @mode = binary_response('create','guess')
+    if @mode == 'guess'
+      play_game(@max_turns, @secret_length)
+    elsif @mode == 'create'
+      computer_plays(@max_turns, @secret_length)
+    end
   end
 
   def play_game(max_turns, secret_length)
+   p @secret_code
     turn = 0
     win = nil
-    hints=[]
+    hints = []
     while turn < max_turns and win == nil
-      puts "\nYou have #{max_turns-turn} turns to guess the secret code.\n"
+      puts "\nYou have #{max_turns - turn} turns to guess the secret code.\n"
       puts "\nPlease choose #{secret_length} from #{@color_options.join(", ")}.\n\n"
       guess = @player.make_guess(@color_options, secret_length)
       @game_board.add_guess(guess)
       hints << get_hint(guess)
-      if hints[-1][0]==secret_length
-         win=true
+      if hints[-1][0] == secret_length
+        win = true
       end
       @game_board.show_curr_state(hints)
 
@@ -48,35 +52,38 @@ class MasterMind
     else
       puts "Sorry, you ran out of guesses\n\n"
     end
-    
+
     play_again(max_turns, secret_length)
   end
 
-  #evaluates guess and returns hint
+  def computer_plays(max_turns, secret_length)
+    p 'cpu playing'
+  end
+
+  # evaluates guess and returns hint
   def get_hint(guesses)
-   hit=0
-   ball=0
+    hit = 0
+    ball = 0
 
-   guesses.each_with_index do |guess, index|
-      if guess==@secret_code[index]
-         hit+=1
+    guesses.each_with_index do |guess, index|
+      if guess == @secret_code[index]
+        hit += 1
       else
-         if @secret_code.include?(guess)
-            ball+=1
-         end
+        if @secret_code.include?(guess)
+          ball += 1
+        end
       end
-
-   end
-   return [hit,ball]
+    end
+    return [hit, ball]
   end
 
   def play_again(max_turns, secret_length)
     mt = max_turns
     sl = secret_length
-    puts "\nPlay Again?   \n\n"
-    if yes_no == "y"
+    puts "\nPlay Again?\n\n"
+    if binary_response('yes','no') == "yes"
       puts "\nPlay with same settings?\n"
-      if yes_no == 'n'
+      if binary_response('yes','no') == 'no'
         puts "\nChoose Max Turns (Max 20): "
         mt = gets.to_i
         puts "\nChoose Secret Length (Max 8): "
@@ -91,17 +98,22 @@ class MasterMind
   end
 
   def reset
-   @secret_code = @color_options.sample(@secret_length)
-   @game_board = GameBoard.new
+    @secret_code = @color_options.sample(@secret_length)
+    @game_board = GameBoard.new
   end
-  def yes_no
-    response = nil
-    until ['y', 'n'].include?(response)
-      print "Please enter 'yes' or 'no': \n"
-      response = gets.chomp.downcase[0]
-    end
-    return response
+
+#takes two strings and asks until a substring of either one is inputted
+  def binary_response(op1,op2)
+   response = nil
+   options=[op1, op2]
+   puts "Do you want to #{op1} or #{op2} the secret code?\n"
+   until response && options.any? { |opt| opt.start_with?(response) }
+     print "\nPlease enter '#{op1.capitalize}' or '#{op2.capitalize}': \n"
+     response = gets.chomp.downcase
+   end
+   return options.find {|opt| opt.start_with?(response)}
   end
+
 end
 
 # displays board up to current state
@@ -111,9 +123,8 @@ class GameBoard
   end
 
   def show_curr_state(hints)
-   
     @game_board.each_with_index do |guess, index|
-      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " +"|| "+ "Hits: #{ hints[index][0]} Balls: #{hints[index][1]} "
+      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " + "|| " + "Hits: #{hints[index][0]} Balls: #{hints[index][1]} "
     end
   end
 
