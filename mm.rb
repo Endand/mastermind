@@ -20,6 +20,7 @@ class MasterMind
     @game_board = GameBoard.new
     @player = Player.new
 
+    puts "Do you want to create or guess the secret code?\n"
     @mode = binary_response('create', 'guess')
     if @mode == 'guess'
       play_game(@max_turns, @secret_length)
@@ -29,7 +30,6 @@ class MasterMind
   end
 
   def play_game(max_turns, secret_length)
-    p @secret_code
     turn = 0
     win = nil
     hints = []
@@ -51,6 +51,7 @@ class MasterMind
       puts "Congratulations, you got it!\n"
     else
       puts "Sorry, you ran out of guesses\n\n"
+      puts "Secret Code was: #{@secret_code}"
     end
 
     play_again(max_turns, secret_length)
@@ -59,6 +60,7 @@ class MasterMind
   def computer_plays(max_turns, secret_length)
     @secret_code = choose_secret_code(secret_length)
     p @secret_code
+    
   end
 
   def choose_secret_code(secret_length)
@@ -100,23 +102,24 @@ class MasterMind
   def get_hint(guesses)
     hit = 0
     ball = 0
-
+    seen=[]
     guesses.each_with_index do |guess, index|
       if guess == @secret_code[index]
         hit += 1
-      else
-        if @secret_code.include?(guess)
+      elsif seen.none?{|g| g==guess} && @secret_code.include?(guess)
           ball += 1
         end
+        seen<<guess
       end
-    end
+      
+    
     return [hit, ball]
   end
 
   def play_again(max_turns, secret_length)
     mt = max_turns
     sl = secret_length
-    puts "\nPlay Again?\n\n"
+    puts "\nPlay Again?\n"
     if binary_response('yes', 'no') == "yes"
       puts "\nPlay with same settings?\n"
       if binary_response('yes', 'no') == 'no'
@@ -142,7 +145,6 @@ class MasterMind
   def binary_response(op1, op2)
     response = nil
     options = [op1, op2]
-    puts "Do you want to #{op1} or #{op2} the secret code?\n"
     until response && options.any? { |opt| opt.start_with?(response) }
       print "\nPlease enter '#{op1.capitalize}' or '#{op2.capitalize}': \n"
       response = gets.chomp.downcase
@@ -158,9 +160,11 @@ class GameBoard
   end
 
   def show_curr_state(hints)
+    puts "-----------------------------------------------"
     @game_board.each_with_index do |guess, index|
-      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " + "|| " + "Hits: #{hints[index][0]} Balls: #{hints[index][1]} "
+      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " + "|| " + "Hits: #{hints[index][0]} Balls: #{hints[index][1]} \n\n"
     end
+    puts "-----------------------------------------------"
   end
 
   def add_guess(guess)
