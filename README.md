@@ -14,7 +14,7 @@ Mastermind is a code-breaking game where the player needs to guess the secret co
 - The player must guess the secret code within a set number of turns (12 by default).
 - After each game, player can choose a different digits and turns to be used in the next round.
 
-**Computer Mode**
+**Create Mode**
 
 - Player chooses 4 different digits long.
 - There are no duplicate colors in the secret code.
@@ -24,6 +24,9 @@ Mastermind is a code-breaking game where the player needs to guess the secret co
 ## Usage
 
 To play the game, run the provided script (ruby mm.rb). You can choose between creating the secret code or guessing it.
+
+Whenever it asks for an input, any substring of the answer it's looking for works.
+For example, when it asks for yes or no, you can type y,ye,yes for yes.
 
 ## Implementation Details
 
