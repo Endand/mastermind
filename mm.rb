@@ -30,6 +30,7 @@ class MasterMind
   end
 
   def play_game(max_turns, secret_length)
+    p @secret_code
     turn = 0
     win = nil
     hints = []
@@ -104,16 +105,18 @@ class MasterMind
     ball = 0
     seen=[]
     guesses.each_with_index do |guess, index|
-      if guess == @secret_code[index]
-        hit += 1
-      elsif seen.none?{|g| g==guess} && @secret_code.include?(guess)
-          ball += 1
+      if @secret_code.include?(guess)
+        if seen.none?{|g| g==guess}
+        ball+=1
         end
-        seen<<guess
+        if guess == @secret_code[index]
+          hit += 1
+          ball-=1
+        end
       end
-      
-    
-    return [hit, ball]
+      seen<<guess
+    end
+    [hit, ball]
   end
 
   def play_again(max_turns, secret_length)
