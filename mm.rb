@@ -64,7 +64,7 @@ class MasterMind
     guess_result = [0, 0]
     guess_history = []
     poss = color_options.repeated_permutation(4).to_a
-    colors_found=false
+    colors_found = false
 
     until turn >= max_turns
 
@@ -87,8 +87,8 @@ class MasterMind
 
       # evaluate the guess
       guess_result = get_hint(guess)
-      hit,ball = guess_result
-      
+      hit, ball = guess_result
+
       break if hit == 4
 
       puts "H:#{hit} B:#{ball}"
@@ -99,26 +99,54 @@ class MasterMind
       if hit + ball == 4
         poss = eliminate_unused_colors(poss, guess)
         poss = eliminate_duplicate(poss, guess)
-        colors_found=true
+        colors_found = true
       # could be all 4 colors if unique but duplicates are allowed as a guess
       elsif hit + ball == 0
         other_colors = (color_options - guess)
         poss = eliminate_unused_colors(poss, other_colors)
         poss = eliminate_duplicate(poss, other_colors)
+      # found 3 colors
+      elsif hit + ball == 3 || (hit + ball == 1 && guess.uniq.length==4)
+        hit + ball == 3 ? candidates = guess
+                    : candidates = color_options - guess
+        choose_one = color_options - candidates
+
+        #take out one from candidates and replace with one with choose_one
+        taken_out=candidates.sample
+        replacer=choose_one.sample
+        replaced_guess = (candidates-[taken_out])+[replacer]
+        guess_history << replaced_guess
+        turn+=1
+
+        #evaluate the replaced_guess and eliminate poss based on it
+        hit2,ball2=get_hint(replaced_guess)
+        break if hit2 == 4
+        #took out wrong, put right
+        if hit2+ball2==4
+          #replaced guess has all the correct colors so eliminate poss with other colors
+          poss = poss.select {|option| option.sort==replaced_guess.sort}
+        #2 possibilities
+        elsif hit2+ball2==3
+        
+        #took out right, put wrong
+        elsif hit2+ball2==2
+          poss = poss.select {|option| option.include?(taken_out)}
+          poss = poss.select {|option| option.exclude?(replacer)}
+        end
+        
       end
 
-      #if valid colors are found
-      if colors_found==true
+      # when valid colors are found
+      if colors_found == true
         puts "FOUND ALL COLORS"
-        #when 4 ball, eliminate choices with the 
-        #same color on the same index of choice and guess
+        # when 4 balls, eliminate choices with the
+        # same color on the same index of choice and guess
         if ball == 4
-          guess.each_with_index do |g,index|
-            poss = poss.reject {|choice| choice[index]==g}
+          guess.each_with_index do |g, index|
+            poss = poss.reject { |choice| choice[index] == g }
           end
         end
       end
-      
 
       # remove current guess from pool of choices
       poss.reject! { |option| option == guess }
