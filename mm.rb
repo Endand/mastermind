@@ -67,8 +67,6 @@ class MasterMind
 
     until turn >= max_turns
 
-      # pick random from poss
-
       #--------------------------------------------------
       # debug area
       # secret code is red blue green yellow
@@ -82,7 +80,7 @@ class MasterMind
       # Each turn, guess randomly and eliminate possible choices
       guess = poss.sample
       guess = poss.sample until guess.uniq.length == 4
-      puts guess.join(' ')
+      # puts guess.join(' ')
       guess_history << guess
 
       # evaluate the guess
@@ -91,7 +89,7 @@ class MasterMind
 
       break if hit == 4
 
-      puts "H:#{hit} B:#{ball}"
+      # puts "H:#{hit} B:#{ball}"
 
       # eliminate poss based on evaluation
 
@@ -130,6 +128,27 @@ class MasterMind
           poss = poss.select { |option| option.sort == replaced_guess.sort }
         # 2 possibilities
         elsif hit2 + ball2 == 3
+          # Test again with diff option on the same spot
+          other_replacer = (choose_one - [replacer]).sample
+          tester_guess = replaced_guess - [replacer] + [other_replacer]
+          hit3, ball3 = get_hint(tester_guess)
+          # still counts as taking a turn
+          guess_history << tester_guess
+          poss.reject! { |option| option == tester_guess }
+          turn += 1
+
+          # took out wrong, put wrong
+          if hit3 + ball3 == 3
+            poss = poss.reject { |option| option.include?(taken_out) }
+            poss = poss.reject { |option| option.include?(replacer) }
+          # took out right, put wrong
+          elsif hit3 + ball3 == 2
+            poss = poss.select { |option| option.include?(taken_out) }
+            poss = poss.select { |option| option.include?(replacer) }
+
+          end
+          # eithert way, other_replacer is not valid color
+          poss = poss.reject { |option| option.include?(other_replacer) }
 
         # took out right, put wrong
         elsif hit2 + ball2 == 2
@@ -140,35 +159,29 @@ class MasterMind
       end
 
       # when valid colors are found
-      if colors_found == true
-        puts 'FOUND ALL COLORS'
-        # when 4 balls, eliminate choices with the
-        # same color on the same index of choice and guess
-        if ball == 4
-          guess.each_with_index do |g, index|
-            poss = poss.reject { |choice| choice[index] == g }
-          end
+      # when 4 balls, eliminate choices with the
+      # same color on the same index of choice and guess
+      if colors_found == true && (ball == 4)
+        guess.each_with_index do |g, index|
+          poss = poss.reject { |choice| choice[index] == g }
         end
       end
 
       # remove current guess from pool of choices
       poss.reject! { |option| option == guess }
-
-      # for debug purpose
-      puts poss.length
+      break if turn >= max_turns
 
       turn += 1
     end
 
-    # guess_history.each_with_index do |guess,index|
-    #   puts "\nGuess ##{index + 1}: #{guess.join(' ')} \n"
-    # end
+    guess_history.each_with_index do |guess, index|
+      puts "\nGuess #{index + 1}: #{guess.join(' ')}\n"
+    end
     puts "\nSecret Code: #{@secret_code}\n"
     if guess_result[0] == 4
       puts "\nComputer guessed your secret code.\n"
     elsif turn >= max_turns
       puts "\nYou Won! Computer failed to guess your secret code.\n"
-
     end
     play_again(max_turns, 4, 'create')
   end
