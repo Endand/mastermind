@@ -14,7 +14,7 @@ Mastermind is a code-breaking game where the player needs to guess the secret co
 - The player must guess the secret code within a set number of turns (12 by default).
 - After each game, player can choose a different digits and turns to be used in the next round.
 
-**Computer Mode**
+**Create Mode**
 
 - Player chooses 4 different digits long.
 - There are no duplicate colors in the secret code.
