@@ -13,7 +13,7 @@
 class MasterMind
   def initialize
     @color_options = ['red', 'blue', 'green', 'yellow', 'orange', 'white', 'pink', 'violet']
-    @max_turns = 12
+    @max_turns = 20
     @secret_length = 4
     @secret_code = @color_options.sample(@secret_length)
     puts "Play Mastermind!\n\n"
@@ -65,31 +65,64 @@ class MasterMind
     turn=0
     guess_result=[0,0]
     guess_history=[]
-    possibilities= color_options.repeated_permutation(4).to_a
-
+    poss= color_options.repeated_permutation(4).to_a
+    
     until turn>=max_turns || guess_result[0]==4
-      #pick random from possibilities
-      guess= possibilities.sample
+
+      #pick random from poss
+      
+      #--------------------------------------------------
+      #debug area
+      #secret code is red blue green yellow
+      # guess=['pink','pink','pink','white']
+      # guess=['blue','yellow','green','red']
+      # guess=['pink','orange','white','violet']
+      # guess=['violet','white','violet','white']
+      #--------------------------------------------------
+
+      guess= poss.sample
+      puts guess.join(" ")
       guess_history << guess
-      #evaluate it with get_hint(guesses)
+
+      #evaluate the guess
+      guess_result=get_hint(guess)
+      hit=guess_result[0]
+      ball=guess_result[1]
+
+      puts "H:#{hit} B:#{ball}"
       
-      
-      
+      #eliminate poss based on evaluation
+
+      #eliminate every poss that doesn't contain those 4 colors
+      if hit+ball==4
+        poss= eliminate_colors(poss,guess)
+
+      #only keep poss that contain the other 4 colors
+      elsif hit+ball==0
+        other_colors=(color_options - guess)
+        poss= eliminate_colors(poss,other_colors)
+      end
+      puts poss.length
+      puts poss
       turn+=1
     end
 
-    guess_history.each_with_index do |guess,index|
-      puts "\nGuess ##{index + 1}: #{guess.join(' ')} \n"
-    end
+    # guess_history.each_with_index do |guess,index|
+    #   puts "\nGuess ##{index + 1}: #{guess.join(' ')} \n"
+    # end
       puts "\nSecret Code: #{@secret_code}\n"
     if guess_result[0]==4
       puts "\nComputer guessed your secret code.\n"
     elsif turn>=max_turns
-      puts "\nYou won! Computer failed to guess your secret code.\n"
+      puts "\nYou Won! Computer failed to guess your secret code.\n"
     
     end
+  end
 
-  
+  #keeps only the poss with some combination of 'keep' array of colors
+  def eliminate_colors(poss,keep)
+    poss.select! {|option| (option | keep).sort==keep.sort }
+    poss
   end
 
   def choose_secret_code(secret_length)
