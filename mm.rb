@@ -25,7 +25,8 @@ class MasterMind
     if @mode == 'guess'
       play_game(@max_turns, @secret_length)
     elsif @mode == 'create'
-      computer_plays(@max_turns, @secret_length)
+      
+      computer_plays(@max_turns,@color_options)
     end
   end
 
@@ -58,10 +59,37 @@ class MasterMind
     play_again(max_turns, secret_length)
   end
 
-  def computer_plays(max_turns, secret_length)
-    @secret_code = choose_secret_code(secret_length)
-    p @secret_code
+  #can only choose 4 codes long secret
+  def computer_plays(max_turns,color_options)
+    @secret_code = choose_secret_code(4)
+    turn=0
+    guess_result=[0,0]
+    guess_history=[]
+    possibilities= color_options.repeated_permutation(4).to_a
+
+    until turn>=max_turns || guess_result[0]==4
+      #pick random from possibilities
+      guess= possibilities.sample
+      guess_history << guess
+      #evaluate it with get_hint(guesses)
+      
+      
+      
+      turn+=1
+    end
+
+    guess_history.each_with_index do |guess,index|
+      puts "\nGuess ##{index + 1}: #{guess.join(' ')} \n"
+    end
+      puts "\nSecret Code: #{@secret_code}\n"
+    if guess_result[0]==4
+      puts "\nComputer guessed your secret code.\n"
+    elsif turn>=max_turns
+      puts "\nYou won! Computer failed to guess your secret code.\n"
     
+    end
+
+  
   end
 
   def choose_secret_code(secret_length)
