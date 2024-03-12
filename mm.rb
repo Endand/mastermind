@@ -78,8 +78,10 @@ class MasterMind
       # guess=['blue','yellow','green','red']
       # guess=['pink','orange','white','violet']
       # guess=['violet','white','violet','white']
+      # guess=['violet','orange','white','violet']
       #--------------------------------------------------
 
+      #Each turn, guess randomly and eliminate possible choices
       guess= poss.sample
       puts guess.join(" ")
       guess_history << guess
@@ -93,17 +95,22 @@ class MasterMind
       
       #eliminate poss based on evaluation
 
-      #eliminate every poss that doesn't contain those 4 colors
+      #found all 4 colors
       if hit+ball==4
-        poss= eliminate_colors(poss,guess)
-
-      #only keep poss that contain the other 4 colors
+        poss= eliminate_unused_colors(poss,guess)
+        poss= eliminate_duplicate(poss,guess)
+      #could be all 4 colors if unique but duplicates are allowed as guess
       elsif hit+ball==0
         other_colors=(color_options - guess)
-        poss= eliminate_colors(poss,other_colors)
+        poss= eliminate_unused_colors(poss,other_colors)
+        poss= eliminate_duplicate(poss,other_colors)
       end
+      #remove guess from pool of choices
+      poss.reject! { |option| option == guess }
+
+      #for debug purpose
       puts poss.length
-      puts poss
+      
       turn+=1
     end
 
@@ -120,8 +127,13 @@ class MasterMind
   end
 
   #keeps only the poss with some combination of 'keep' array of colors
-  def eliminate_colors(poss,keep)
-    poss.select! {|option| (option | keep).sort==keep.sort }
+  def eliminate_unused_colors(poss,keep)
+    poss.select {|option| (option | keep).sort==keep.sort }
+  end
+
+  #get poss with duplicate color out
+  def eliminate_duplicate(poss,colors)
+    colors.each { |color| poss = poss.reject { |option| option.count(color) > 1 } }
     poss
   end
 
