@@ -12,7 +12,7 @@
 # checks for win
 class MasterMind
   def initialize
-    @color_options = ['red', 'blue', 'green', 'yellow', 'orange', 'white', 'pink', 'violet']
+    @color_options = %w[red blue green yellow orange white pink violet]
     @max_turns = 20
     @secret_length = 4
     @secret_code = @color_options.sample(@secret_length)
@@ -25,8 +25,8 @@ class MasterMind
     if @mode == 'guess'
       play_game(@max_turns, @secret_length)
     elsif @mode == 'create'
-      
-      computer_plays(@max_turns,@color_options)
+
+      computer_plays(@max_turns, @color_options)
     end
   end
 
@@ -35,15 +35,13 @@ class MasterMind
     turn = 0
     win = nil
     hints = []
-    while turn < max_turns and win == nil
+    while turn < max_turns and win.nil?
       puts "\nYou have #{max_turns - turn} turns to guess the secret code.\n"
-      puts "\nPlease choose #{secret_length} from #{@color_options.join(", ")}.\n\n"
+      puts "\nPlease choose #{secret_length} from #{@color_options.join(', ')}.\n\n"
       guess = @player.make_guess(@color_options, secret_length)
       @game_board.add_guess(guess)
       hints << get_hint(guess)
-      if hints[-1][0] == secret_length
-        win = true
-      end
+      win = true if hints[-1][0] == secret_length
       @game_board.show_curr_state(hints)
 
       turn += 1
@@ -59,21 +57,22 @@ class MasterMind
     play_again(max_turns, secret_length)
   end
 
-  #can only choose 4 codes long secret
-  def computer_plays(max_turns,color_options)
+  # can only choose 4 codes long secret
+  def computer_plays(max_turns, color_options)
     @secret_code = choose_secret_code(4)
-    turn=0
-    guess_result=[0,0]
-    guess_history=[]
-    poss= color_options.repeated_permutation(4).to_a
-    
-    until turn>=max_turns || guess_result[0]==4
+    turn = 0
+    guess_result = [0, 0]
+    guess_history = []
+    poss = color_options.repeated_permutation(4).to_a
+    colors_found=false
 
-      #pick random from poss
-      
+    until turn >= max_turns
+
+      # pick random from poss
+
       #--------------------------------------------------
-      #debug area
-      #secret code is red blue green yellow
+      # debug area
+      # secret code is red blue green yellow
       # guess=['pink','pink','pink','white']
       # guess=['blue','yellow','green','red']
       # guess=['pink','orange','white','violet']
@@ -81,58 +80,74 @@ class MasterMind
       # guess=['violet','orange','white','violet']
       #--------------------------------------------------
 
-      #Each turn, guess randomly and eliminate possible choices
-      guess= poss.sample
-      puts guess.join(" ")
+      # Each turn, guess randomly and eliminate possible choices
+      guess = poss.sample
+      puts guess.join(' ')
       guess_history << guess
 
-      #evaluate the guess
-      guess_result=get_hint(guess)
-      hit=guess_result[0]
-      ball=guess_result[1]
+      # evaluate the guess
+      guess_result = get_hint(guess)
+      hit,ball = guess_result
+      
+      break if hit == 4
 
       puts "H:#{hit} B:#{ball}"
-      
-      #eliminate poss based on evaluation
 
-      #found all 4 colors
-      if hit+ball==4
-        poss= eliminate_unused_colors(poss,guess)
-        poss= eliminate_duplicate(poss,guess)
-      #could be all 4 colors if unique but duplicates are allowed as guess
-      elsif hit+ball==0
-        other_colors=(color_options - guess)
-        poss= eliminate_unused_colors(poss,other_colors)
-        poss= eliminate_duplicate(poss,other_colors)
+      # eliminate poss based on evaluation
+
+      # found all 4 colors
+      if hit + ball == 4
+        poss = eliminate_unused_colors(poss, guess)
+        poss = eliminate_duplicate(poss, guess)
+        colors_found=true
+      # could be all 4 colors if unique but duplicates are allowed as a guess
+      elsif hit + ball == 0
+        other_colors = (color_options - guess)
+        poss = eliminate_unused_colors(poss, other_colors)
+        poss = eliminate_duplicate(poss, other_colors)
       end
-      #remove guess from pool of choices
+
+      #if valid colors are found
+      if colors_found==true
+        puts "FOUND ALL COLORS"
+        #when 4 ball, eliminate choices with the 
+        #same color on the same index of choice and guess
+        if ball == 4
+          guess.each_with_index do |g,index|
+            poss = poss.reject {|choice| choice[index]==g}
+          end
+        end
+      end
+      
+
+      # remove current guess from pool of choices
       poss.reject! { |option| option == guess }
 
-      #for debug purpose
+      # for debug purpose
       puts poss.length
-      
-      turn+=1
+
+      turn += 1
     end
 
     # guess_history.each_with_index do |guess,index|
     #   puts "\nGuess ##{index + 1}: #{guess.join(' ')} \n"
     # end
-      puts "\nSecret Code: #{@secret_code}\n"
-    if guess_result[0]==4
+    puts "\nSecret Code: #{@secret_code}\n"
+    if guess_result[0] == 4
       puts "\nComputer guessed your secret code.\n"
-    elsif turn>=max_turns
+    elsif turn >= max_turns
       puts "\nYou Won! Computer failed to guess your secret code.\n"
-    
+
     end
   end
 
-  #keeps only the poss with some combination of 'keep' array of colors
-  def eliminate_unused_colors(poss,keep)
-    poss.select {|option| (option | keep).sort==keep.sort }
+  # keeps only the poss with some combination of 'keep' array of colors
+  def eliminate_unused_colors(poss, keep)
+    poss.select { |option| (option | keep).sort == keep.sort }
   end
 
-  #get poss with duplicate color out
-  def eliminate_duplicate(poss,colors)
+  # get poss with duplicate color out
+  def eliminate_duplicate(poss, colors)
     colors.each { |color| poss = poss.reject { |option| option.count(color) > 1 } }
     poss
   end
@@ -143,7 +158,7 @@ class MasterMind
 
     until valid_inputs && valid_inputs.length == secret_length &&
           valid_inputs.uniq.length == valid_inputs.length &&
-          valid_inputs.all? { |input| @color_options.any? (input) }
+          valid_inputs.all? { |input| @color_options.any?(input) }
 
       print "\nEnter your secret code that is #{secret_length} different colors. (Separated by space): "
       inputs = gets.chomp.downcase.split
@@ -160,11 +175,11 @@ class MasterMind
       end
 
       # if input is a valid substring
-      if inputs.all? { |input| @color_options.any? { |option| option.start_with?(input) } }
-        # turn substring into full color
-        valid_inputs = inputs.map do |input|
-          @color_options.find { |color| color.start_with?(input) }
-        end
+      next unless inputs.all? { |input| @color_options.any? { |option| option.start_with?(input) } }
+
+      # turn substring into full color
+      valid_inputs = inputs.map do |input|
+        @color_options.find { |color| color.start_with?(input) }
       end
 
     end
@@ -176,18 +191,16 @@ class MasterMind
   def get_hint(guesses)
     hit = 0
     ball = 0
-    seen=[]
+    seen = []
     guesses.each_with_index do |guess, index|
       if @secret_code.include?(guess)
-        if seen.none?{|g| g==guess}
-        ball+=1
-        end
+        ball += 1 if seen.none? { |g| g == guess }
         if guess == @secret_code[index]
           hit += 1
-          ball-=1
+          ball -= 1
         end
       end
-      seen<<guess
+      seen << guess
     end
     [hit, ball]
   end
@@ -196,7 +209,7 @@ class MasterMind
     mt = max_turns
     sl = secret_length
     puts "\nPlay Again?\n"
-    if binary_response('yes', 'no') == "yes"
+    if binary_response('yes', 'no') == 'yes'
       puts "\nPlay with same settings?\n"
       if binary_response('yes', 'no') == 'no'
         puts "\nChoose Max Turns (Max 20): "
@@ -225,22 +238,22 @@ class MasterMind
       print "\nPlease enter '#{op1.capitalize}' or '#{op2.capitalize}': \n"
       response = gets.chomp.downcase
     end
-    return options.find { |opt| opt.start_with?(response) }
+    options.find { |opt| opt.start_with?(response) }
   end
 end
 
 # displays board up to current state
 class GameBoard
-  def initialize()
-    @game_board = Array.new
+  def initialize
+    @game_board = []
   end
 
   def show_curr_state(hints)
-    puts "-----------------------------------------------"
+    puts '-----------------------------------------------'
     @game_board.each_with_index do |guess, index|
-      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " + "|| " + "Hits: #{hints[index][0]} Balls: #{hints[index][1]} \n\n"
+      puts "\nGuess ##{index + 1}: #{guess.join(' ')} " + '|| ' + "Hits: #{hints[index][0]} Balls: #{hints[index][1]} \n\n"
     end
-    puts "-----------------------------------------------"
+    puts '-----------------------------------------------'
   end
 
   def add_guess(guess)
@@ -265,7 +278,7 @@ class Player
         input = options.find { |color| color.start_with?(input) }
         return input
       else
-        puts "\nInvalid input. Please choose from #{options.join(", ")}.\n\n"
+        puts "\nInvalid input. Please choose from #{options.join(', ')}.\n\n"
       end
     end
   end
