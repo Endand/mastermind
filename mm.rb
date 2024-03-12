@@ -31,7 +31,6 @@ class MasterMind
   end
 
   def play_game(max_turns, secret_length)
-    p @secret_code
     turn = 0
     win = nil
     hints = []
@@ -54,7 +53,7 @@ class MasterMind
       puts "Secret Code was: #{@secret_code}"
     end
 
-    play_again(max_turns, secret_length)
+    play_again(max_turns, secret_length, 'guess')
   end
 
   # can only choose 4 codes long secret
@@ -82,6 +81,7 @@ class MasterMind
 
       # Each turn, guess randomly and eliminate possible choices
       guess = poss.sample
+      guess = poss.sample until guess.uniq.length == 4
       puts guess.join(' ')
       guess_history << guess
 
@@ -106,39 +106,42 @@ class MasterMind
         poss = eliminate_unused_colors(poss, other_colors)
         poss = eliminate_duplicate(poss, other_colors)
       # found 3 colors
-      elsif hit + ball == 3 || (hit + ball == 1 && guess.uniq.length==4)
-        hit + ball == 3 ? candidates = guess
-                    : candidates = color_options - guess
+      elsif hit + ball == 3 || (hit + ball == 1 && guess.uniq.length == 4)
+        candidates = hit + ball == 3 ? guess : color_options - guess
         choose_one = color_options - candidates
 
-        #take out one from candidates and replace with one with choose_one
-        taken_out=candidates.sample
-        replacer=choose_one.sample
-        replaced_guess = (candidates-[taken_out])+[replacer]
-        guess_history << replaced_guess
-        turn+=1
+        # take out one from candidates and replace with one with choose_one
+        taken_out = candidates.sample
+        replacer = choose_one.sample
+        replaced_guess = (candidates - [taken_out]) + [replacer]
 
-        #evaluate the replaced_guess and eliminate poss based on it
-        hit2,ball2=get_hint(replaced_guess)
+        # still counts as taking a turn
+        guess_history << replaced_guess
+        poss.reject! { |option| option == replaced_guess }
+        turn += 1
+
+        # evaluate the replaced_guess and eliminate poss based on it
+        hit2, ball2 = get_hint(replaced_guess)
         break if hit2 == 4
-        #took out wrong, put right
-        if hit2+ball2==4
-          #replaced guess has all the correct colors so eliminate poss with other colors
-          poss = poss.select {|option| option.sort==replaced_guess.sort}
-        #2 possibilities
-        elsif hit2+ball2==3
-        
-        #took out right, put wrong
-        elsif hit2+ball2==2
-          poss = poss.select {|option| option.include?(taken_out)}
-          poss = poss.select {|option| option.exclude?(replacer)}
+
+        # took out wrong, put right
+        if hit2 + ball2 == 4
+          # replaced guess has all the correct colors so eliminate poss with other colors
+          poss = poss.select { |option| option.sort == replaced_guess.sort }
+        # 2 possibilities
+        elsif hit2 + ball2 == 3
+
+        # took out right, put wrong
+        elsif hit2 + ball2 == 2
+          poss = poss.select { |option| option.include?(taken_out) }
+          poss = poss.reject { |option| option.include?(replacer) }
         end
-        
+
       end
 
       # when valid colors are found
       if colors_found == true
-        puts "FOUND ALL COLORS"
+        puts 'FOUND ALL COLORS'
         # when 4 balls, eliminate choices with the
         # same color on the same index of choice and guess
         if ball == 4
@@ -167,6 +170,7 @@ class MasterMind
       puts "\nYou Won! Computer failed to guess your secret code.\n"
 
     end
+    play_again(max_turns, 4, 'create')
   end
 
   # keeps only the poss with some combination of 'keep' array of colors
@@ -233,7 +237,7 @@ class MasterMind
     [hit, ball]
   end
 
-  def play_again(max_turns, secret_length)
+  def play_again(max_turns, secret_length, mode)
     mt = max_turns
     sl = secret_length
     puts "\nPlay Again?\n"
@@ -242,12 +246,19 @@ class MasterMind
       if binary_response('yes', 'no') == 'no'
         puts "\nChoose Max Turns (Max 20): "
         mt = gets.to_i
-        puts "\nChoose Secret Length (Max 8): "
-        sl = gets.to_i
+        if mode == 'guess'
+          puts "\nChoose Secret Length (Max 8): "
+          sl = gets.to_i
+        end
       end
       reset
       puts "\nNew Game!\n"
-      play_game(mt, sl)
+      if mode == 'guess'
+        play_game(mt, sl)
+      else
+        computer_plays(mt, @color_options)
+      end
+
     else
       puts "\nThank you for playing. Have a good day!"
     end
