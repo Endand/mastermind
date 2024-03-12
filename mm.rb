@@ -67,20 +67,10 @@ class MasterMind
 
     until turn >= max_turns
 
-      #--------------------------------------------------
-      # debug area
-      # secret code is red blue green yellow
-      # guess=['pink','pink','pink','white']
-      # guess=['blue','yellow','green','red']
-      # guess=['pink','orange','white','violet']
-      # guess=['violet','white','violet','white']
-      # guess=['violet','orange','white','violet']
-      #--------------------------------------------------
-
       # Each turn, guess randomly and eliminate possible choices
       guess = poss.sample
       guess = poss.sample until guess.uniq.length == 4
-      # puts guess.join(' ')
+      
       guess_history << guess
 
       # evaluate the guess
@@ -88,8 +78,6 @@ class MasterMind
       hit, ball = guess_result
 
       break if hit == 4
-
-      # puts "H:#{hit} B:#{ball}"
 
       # eliminate poss based on evaluation
 
